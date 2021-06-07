@@ -115,7 +115,7 @@ func (c *Collector) Describe(ch chan<- *prometheus.Desc) {
 }
 
 func (c *Collector) Collect(ch chan<- prometheus.Metric) {
-	// Only one Collect call in progress at a time.
+	// Only one Collect call in progress at a time
 	c.Lock()
 	defer c.Unlock()
 
