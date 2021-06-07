@@ -17,7 +17,7 @@ const (
 )
 
 var (
-	addr = flag.String("web.listen-address", ":9445", "Address to listen on for web interface and telemetry.")
+	addr            = flag.String("web.listen-address", ":9445", "Address to listen on for web interface and telemetry.")
 	disableFanSpeed = flag.Bool("disable-fanspeed", false, "Disable fanspeed metric")
 
 	labels = []string{"minor_number", "uuid", "name"}
@@ -25,13 +25,14 @@ var (
 
 type Collector struct {
 	sync.Mutex
-	numDevices  prometheus.Gauge
-	usedMemory  *prometheus.GaugeVec
-	totalMemory *prometheus.GaugeVec
-	dutyCycle   *prometheus.GaugeVec
-	powerUsage  *prometheus.GaugeVec
-	temperature *prometheus.GaugeVec
-	fanSpeed    *prometheus.GaugeVec
+	numDevices       prometheus.Gauge
+	usedMemory       *prometheus.GaugeVec
+	totalMemory      *prometheus.GaugeVec
+	dutyCycle        *prometheus.GaugeVec
+	powerUsage       *prometheus.GaugeVec
+	temperature      *prometheus.GaugeVec
+	fanSpeed         *prometheus.GaugeVec
+	nvlinkThroughput *prometheus.GaugeVec
 }
 
 func NewCollector() *Collector {
@@ -91,6 +92,13 @@ func NewCollector() *Collector {
 			},
 			labels,
 		),
+		nvlinkThroughput: prometheus.NewGaugeVec(
+			prometheus.GaugeOpts{
+				Namespace: namespace,
+				Name: "throughput_kib",
+				Help: "NVlink throughput",
+			}
+		),
 	}
 }
 
@@ -102,6 +110,7 @@ func (c *Collector) Describe(ch chan<- *prometheus.Desc) {
 	c.powerUsage.Describe(ch)
 	c.temperature.Describe(ch)
 	c.fanSpeed.Describe(ch)
+	c.nvlinkThroughput.Describe(ch)
 }
 
 func (c *Collector) Collect(ch chan<- prometheus.Metric) {
@@ -115,6 +124,7 @@ func (c *Collector) Collect(ch chan<- prometheus.Metric) {
 	c.powerUsage.Reset()
 	c.temperature.Reset()
 	c.fanSpeed.Reset()
+	c.nvlinkThroughput.Reset()
 
 	numDevices, err := gonvml.DeviceCount()
 	if err != nil {
@@ -188,6 +198,13 @@ func (c *Collector) Collect(ch chan<- prometheus.Metric) {
 				c.fanSpeed.WithLabelValues(minor, uuid, name).Set(float64(fanSpeed))
 			}
 		}
+
+		throughput, err := dev.nvmlDeviceGetThroughput()
+		if err != nil {
+			log.Printf("nvmlDeviceGetThroughput() error: %v", err)
+		} else {
+			c.nvlinkThroughput.WithLabelValues(minor, uuid, name).Set(float64(throughput))
+		}
 	}
 	c.usedMemory.Collect(ch)
 	c.totalMemory.Collect(ch)
@@ -195,6 +212,7 @@ func (c *Collector) Collect(ch chan<- prometheus.Metric) {
 	c.powerUsage.Collect(ch)
 	c.temperature.Collect(ch)
 	c.fanSpeed.Collect(ch)
+	c.nvlinkThroughput.Collect(ch)
 }
 
 func main() {

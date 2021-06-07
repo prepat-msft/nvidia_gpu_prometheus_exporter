@@ -442,6 +442,35 @@ func (d Device) UtilizationRates() (uint, uint, error) {
 	return uint(utilization.gpu), uint(utilization.memory), errorString(r)
 }
 
+func (d Device) nvmlDeviceGetThroughput() (float64, error) {
+	if C.nvmlHandle == nil {
+		return 0, errLibraryNotLoaded
+	}
+	var fieldValues C.nvmlFieldValue_t
+	fieldValues.fieldId = C.NVML_FI_DEV_NVLINK_THROUGHPUT_DATA_TX
+	fieldValues.scopeId = 0
+	r := C.nvmlDeviceGetFieldValues(d.dev, 1, &fieldValues)
+	if r.nvmlReturn != C.NVML_SUCCESS {
+		return 0, errorString(r)
+	}
+	if r.valueType == C.NVML_VALUE_TYPE_DOUBLE {
+		return float64(r.value.dVal), errorString(r)
+	}
+	if r.valueType == C.NVML_VALUE_TYPE_UNSIGNED_INT {
+		return float64(r.value.uiVal), errorString(r)
+	}
+	if r.valueType == C.NVML_VALUE_TYPE_UNSIGNED_LONG {
+		return float64(r.value.ulVal), errorString(r)
+	}
+	if r.valueType == C.NVML_VALUE_TYPE_UNSIGNED_LONG_LONG {
+		return float64(r.value.ullVal), errorString(r)
+	}
+	if r.valueType == C.NVML_VALUE_TYPE_SIGNED_LONG_LONG {
+		return float64(r.value.sllVal), errorString(r)
+	}
+	return float64(0), errorString(r)
+}
+
 // PowerUsage returns the power usage for this GPU and its associated circuitry
 // in milliwatts. The reading is accurate to within +/- 5% of current power draw.
 func (d Device) PowerUsage() (uint, error) {
