@@ -890,6 +890,8 @@ typedef enum nvmlGpuVirtualizationMode {
 #define NVML_FI_DEV_PERF_POLICY_TOTAL_APP_CLOCKS   80  	//!< Perf Policy Counter for Total App Clock Policy
 #define NVML_FI_DEV_PERF_POLICY_TOTAL_BASE_CLOCKS  81 	//!< Perf Policy Counter for Total Base Clocks Policy
 
+#define NVML_FI_DEV_NVLINK_THROUGHPUT_DATA_TX 138
+
 /* Memory temperatures */
 #define NVML_FI_DEV_MEMORY_TEMP  82 //!< Memory temperature for the device
 
