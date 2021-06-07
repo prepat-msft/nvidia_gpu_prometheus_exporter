@@ -95,9 +95,10 @@ func NewCollector() *Collector {
 		nvlinkThroughput: prometheus.NewGaugeVec(
 			prometheus.GaugeOpts{
 				Namespace: namespace,
-				Name: "throughput_kib",
-				Help: "NVlink throughput",
-			}
+				Name:      "throughput_kib",
+				Help:      "NVlink throughput",
+			},
+			labels,
 		),
 	}
 }
