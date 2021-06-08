@@ -903,7 +903,7 @@ typedef enum nvmlGpuVirtualizationMode {
 typedef struct nvmlFieldValue_st
 {
     unsigned int fieldId;       //!< ID of the NVML field to retrieve. This must be set before any call that uses this struct. See the constants starting with NVML_FI_ above.
-    unsigned int unused;        //!< Currently unused. This should be initialized to 0 by the caller before any API call
+    unsigned int scopeId;        //!< Currently unused. This should be initialized to 0 by the caller before any API call
     long long timestamp;        //!< CPU Timestamp of this value in microseconds since 1970
     long long latencyUsec;      //!< How long this field value took to update (in usec) within NVML. This may be averaged across several fields that are serviced by the same driver call.
     nvmlValueType_t valueType;  //!< Type of the value stored in value
