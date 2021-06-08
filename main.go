@@ -200,7 +200,7 @@ func (c *Collector) Collect(ch chan<- prometheus.Metric) {
 			}
 		}
 
-		throughput, err := dev.nvmlDeviceGetThroughput()
+		throughput, err := dev.NvmlDeviceGetThroughput()
 		if err != nil {
 			log.Printf("nvmlDeviceGetThroughput() error: %v", err)
 		} else {

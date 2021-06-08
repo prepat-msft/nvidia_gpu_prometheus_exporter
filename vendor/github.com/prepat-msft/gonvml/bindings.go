@@ -442,7 +442,7 @@ func (d Device) UtilizationRates() (uint, uint, error) {
 	return uint(utilization.gpu), uint(utilization.memory), errorString(r)
 }
 
-func (d Device) nvmlDeviceGetThroughput() (float64, error) {
+func (d Device) NvmlDeviceGetThroughput() (float64, error) {
 	if C.nvmlHandle == nil {
 		return 0, errLibraryNotLoaded
 	}
