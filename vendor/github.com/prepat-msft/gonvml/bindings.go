@@ -462,22 +462,22 @@ func (d Device) NvmlDeviceGetThroughput() (float64, error) {
 	fieldValues.fieldId = C.NVML_FI_DEV_NVLINK_THROUGHPUT_DATA_TX
 	fieldValues.scopeId = 0
 	r := C.nvmlDeviceGetFieldValues(d.dev, 1, &fieldValues)
-	if r.nvmlReturn != C.NVML_SUCCESS {
+	if r != C.NVML_SUCCESS {
 		return 0, errorString(r)
 	}
-	if r.valueType == C.NVML_VALUE_TYPE_DOUBLE {
-		return float64(fieldValues.value.dVal), errorString(r)
+	if fieldValues.valueType == C.NVML_VALUE_TYPE_DOUBLE {
+		return float64(fieldValues.value), errorString(r)
 	}
-	if r.valueType == C.NVML_VALUE_TYPE_UNSIGNED_INT {
+	if fieldValues.valueType == C.NVML_VALUE_TYPE_UNSIGNED_INT {
 		return float64(fieldValues.value.uiVal), errorString(r)
 	}
-	if r.valueType == C.NVML_VALUE_TYPE_UNSIGNED_LONG {
+	if fieldValues.valueType == C.NVML_VALUE_TYPE_UNSIGNED_LONG {
 		return float64(fieldValues.value.ulVal), errorString(r)
 	}
-	if r.valueType == C.NVML_VALUE_TYPE_UNSIGNED_LONG_LONG {
+	if fieldValues.valueType == C.NVML_VALUE_TYPE_UNSIGNED_LONG_LONG {
 		return float64(fieldValues.value.ullVal), errorString(r)
 	}
-	if r.valueType == C.NVML_VALUE_TYPE_SIGNED_LONG_LONG {
+	if fieldValues.valueType == C.NVML_VALUE_TYPE_SIGNED_LONG_LONG {
 		return float64(fieldValues.value.sllVal), errorString(r)
 	}
 	return float64(0), errorString(r)
