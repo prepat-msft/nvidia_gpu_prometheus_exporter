@@ -475,13 +475,16 @@ func (d Device) NvmlDeviceGetThroughput() (float64, error) {
 		return float64(*ptr), errorString(r)
 	}
 	if fieldValues.valueType == C.NVML_VALUE_TYPE_UNSIGNED_LONG {
-		return float64(fieldValues.value.ulVal), errorString(r)
+		ptr := (*uint64)(unsafe.Pointer(&fieldValues.value))
+		return float64(*ptr), errorString(r)
 	}
 	if fieldValues.valueType == C.NVML_VALUE_TYPE_UNSIGNED_LONG_LONG {
-		return float64(fieldValues.value.ullVal), errorString(r)
+		ptr := (*uint64)(unsafe.Pointer(&fieldValues.value))
+		return float64(*ptr), errorString(r)
 	}
 	if fieldValues.valueType == C.NVML_VALUE_TYPE_SIGNED_LONG_LONG {
-		return float64(fieldValues.value.sllVal), errorString(r)
+		ptr := (*int)(unsafe.Pointer(&fieldValues.value))
+		return float64(*ptr), errorString(r)
 	}
 	return float64(0), errorString(r)
 }
