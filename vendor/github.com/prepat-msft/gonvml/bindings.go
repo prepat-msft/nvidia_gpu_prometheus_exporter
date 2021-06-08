@@ -454,19 +454,19 @@ func (d Device) NvmlDeviceGetThroughput() (float64, error) {
 		return 0, errorString(r)
 	}
 	if r.valueType == C.NVML_VALUE_TYPE_DOUBLE {
-		return float64(r.value.dVal), errorString(r)
+		return float64(fieldValues.value.dVal), errorString(r)
 	}
 	if r.valueType == C.NVML_VALUE_TYPE_UNSIGNED_INT {
-		return float64(r.value.uiVal), errorString(r)
+		return float64(fieldValues.value.uiVal), errorString(r)
 	}
 	if r.valueType == C.NVML_VALUE_TYPE_UNSIGNED_LONG {
-		return float64(r.value.ulVal), errorString(r)
+		return float64(fieldValues.value.ulVal), errorString(r)
 	}
 	if r.valueType == C.NVML_VALUE_TYPE_UNSIGNED_LONG_LONG {
-		return float64(r.value.ullVal), errorString(r)
+		return float64(fieldValues.value.ullVal), errorString(r)
 	}
 	if r.valueType == C.NVML_VALUE_TYPE_SIGNED_LONG_LONG {
-		return float64(r.value.sllVal), errorString(r)
+		return float64(fieldValues.value.sllVal), errorString(r)
 	}
 	return float64(0), errorString(r)
 }
