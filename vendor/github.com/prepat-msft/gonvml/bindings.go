@@ -325,6 +325,7 @@ import (
 	"errors"
 	"fmt"
 	"time"
+	"unsafe"
 )
 
 const (
@@ -466,10 +467,12 @@ func (d Device) NvmlDeviceGetThroughput() (float64, error) {
 		return 0, errorString(r)
 	}
 	if fieldValues.valueType == C.NVML_VALUE_TYPE_DOUBLE {
-		return float64(fieldValues.value), errorString(r)
+		ptr := (*float64)(unsafe.Pointer(&fieldValues.value))
+		return float64(*ptr), errorString(r)
 	}
 	if fieldValues.valueType == C.NVML_VALUE_TYPE_UNSIGNED_INT {
-		return float64(fieldValues.value.uiVal), errorString(r)
+		ptr := (*uint)(unsafe.Pointer(&fieldValues.value))
+		return float64(*ptr), errorString(r)
 	}
 	if fieldValues.valueType == C.NVML_VALUE_TYPE_UNSIGNED_LONG {
 		return float64(fieldValues.value.ulVal), errorString(r)
