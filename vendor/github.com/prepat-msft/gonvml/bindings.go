@@ -103,6 +103,14 @@ nvmlReturn_t nvmlDeviceGetUtilizationRates(nvmlDevice_t device, nvmlUtilization_
   return nvmlDeviceGetUtilizationRatesFunc(device, utilization);
 }
 
+nvmlReturn_t (*nvmlDeviceGetFieldValuesFunc)(nvmlDevice_t device, int valuesCount, nvmlFieldValue_t* values);
+nvmlReturn_t nvmlDeviceGetFieldValues(nvmlDevice_t device, int valuesCount, nvmlFieldValue_t* values) {
+  if (nvmlDeviceGetFieldValuesFunc == NULL) {
+    return NVML_ERROR_FUNCTION_NOT_FOUND;
+  }
+  return nvmlDeviceGetFieldValuesFunc(device, valuesCount, values);
+}
+
 nvmlReturn_t (*nvmlDeviceGetPowerUsageFunc)(nvmlDevice_t device, unsigned int *power);
 nvmlReturn_t nvmlDeviceGetPowerUsage(nvmlDevice_t device, unsigned int *power) {
   if (nvmlDeviceGetPowerUsageFunc == NULL) {
@@ -195,6 +203,10 @@ nvmlReturn_t nvmlInit_dl(void) {
   }
   nvmlDeviceGetUtilizationRatesFunc = dlsym(nvmlHandle, "nvmlDeviceGetUtilizationRates");
   if (nvmlDeviceGetUtilizationRatesFunc == NULL) {
+    return NVML_ERROR_FUNCTION_NOT_FOUND;
+  }
+  nvmlDeviceGetFieldValuesFunc = dlsym(nvmlHandle, "nvmlDeviceGetFieldValues");
+  if (nvmlDeviceGetFieldValuesFunc == NULL) {
     return NVML_ERROR_FUNCTION_NOT_FOUND;
   }
   nvmlDeviceGetPowerUsageFunc = dlsym(nvmlHandle, "nvmlDeviceGetPowerUsage");
