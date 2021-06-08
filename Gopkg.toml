@@ -1,6 +1,6 @@
 [[constraint]]
   branch = "master"
-  name = "github.com/mindprince/gonvml"
+  name = "github.com/prepat-msft/gonvml"
 
 [[constraint]]
   name = "github.com/prometheus/client_golang"

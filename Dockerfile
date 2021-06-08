@@ -1,5 +1,5 @@
 FROM golang as build
-RUN go get github.com/mindprince/nvidia_gpu_prometheus_exporter
+RUN go get github.com/prepat-msft/nvidia_gpu_prometheus_exporter
 
 FROM ubuntu:18.04
 COPY --from=build /go/bin/nvidia_gpu_prometheus_exporter /
