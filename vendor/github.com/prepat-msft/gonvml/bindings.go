@@ -471,24 +471,27 @@ func (d Device) NvmlDeviceGetThroughput(path string) (float64, error) {
 	if r != C.NVML_SUCCESS {
 		return 0, errorString(r)
 	}
-	ans := 0.0
-	ptr := &ans
 	if fieldValues.valueType == C.NVML_VALUE_TYPE_DOUBLE {
-		ptr = (*float64)(unsafe.Pointer(&fieldValues.value))
+		ptr := (*float64)(unsafe.Pointer(&fieldValues.value))
+		return float64(*ptr), errorString(r)
 	}
 	if fieldValues.valueType == C.NVML_VALUE_TYPE_UNSIGNED_INT {
-		ptr = (*uint)(unsafe.Pointer(&fieldValues.value))
+		ptr := (*uint)(unsafe.Pointer(&fieldValues.value))
+		return float64(*ptr), errorString(r)
 	}
 	if fieldValues.valueType == C.NVML_VALUE_TYPE_UNSIGNED_LONG {
-		ptr = (*uint64)(unsafe.Pointer(&fieldValues.value))
+		ptr := (*uint64)(unsafe.Pointer(&fieldValues.value))
+		return float64(*ptr), errorString(r)
 	}
 	if fieldValues.valueType == C.NVML_VALUE_TYPE_UNSIGNED_LONG_LONG {
-		ptr = (*uint64)(unsafe.Pointer(&fieldValues.value))
+		ptr := (*uint64)(unsafe.Pointer(&fieldValues.value))
+		return float64(*ptr), errorString(r)
 	}
 	if fieldValues.valueType == C.NVML_VALUE_TYPE_SIGNED_LONG_LONG {
-		ptr = (*int)(unsafe.Pointer(&fieldValues.value))
+		ptr := (*int)(unsafe.Pointer(&fieldValues.value))
+		return float64(*ptr), errorString(r)
 	}
-	return float64(*ptr), errorString(r)
+	return float64(0), errorString(r)
 }
 
 // PowerUsage returns the power usage for this GPU and its associated circuitry
