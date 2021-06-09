@@ -21,6 +21,7 @@ package gonvml
 #include <stddef.h>
 #include <dlfcn.h>
 #include <stdlib.h>
+#include <limits.h>
 
 #include "nvml.h"
 
@@ -455,38 +456,39 @@ func (d Device) UtilizationRates() (uint, uint, error) {
 	return uint(utilization.gpu), uint(utilization.memory), errorString(r)
 }
 
-func (d Device) NvmlDeviceGetThroughput() (float64, error) {
+func (d Device) NvmlDeviceGetThroughput(path string) (float64, error) {
 	if C.nvmlHandle == nil {
 		return 0, errLibraryNotLoaded
 	}
 	var fieldValues C.nvmlFieldValue_t
-	fieldValues.fieldId = C.NVML_FI_DEV_NVLINK_THROUGHPUT_DATA_TX
-	fieldValues.scopeId = 0
+	if path == "Tx" {
+		fieldValues.fieldId = C.NVML_FI_DEV_NVLINK_THROUGHPUT_DATA_TX
+	} else {
+		fieldValues.fieldId = C.NVML_FI_DEV_NVLINK_THROUGHPUT_DATA_RX
+	}
+	fieldValues.scopeId = C.UINT_MAX
 	r := C.nvmlDeviceGetFieldValues(d.dev, 1, &fieldValues)
 	if r != C.NVML_SUCCESS {
 		return 0, errorString(r)
 	}
+	ans := 0.0
+	ptr := &ans
 	if fieldValues.valueType == C.NVML_VALUE_TYPE_DOUBLE {
-		ptr := (*float64)(unsafe.Pointer(&fieldValues.value))
-		return float64(*ptr), errorString(r)
+		ptr = (*float64)(unsafe.Pointer(&fieldValues.value))
 	}
 	if fieldValues.valueType == C.NVML_VALUE_TYPE_UNSIGNED_INT {
-		ptr := (*uint)(unsafe.Pointer(&fieldValues.value))
-		return float64(*ptr), errorString(r)
+		ptr = (*uint)(unsafe.Pointer(&fieldValues.value))
 	}
 	if fieldValues.valueType == C.NVML_VALUE_TYPE_UNSIGNED_LONG {
-		ptr := (*uint64)(unsafe.Pointer(&fieldValues.value))
-		return float64(*ptr), errorString(r)
+		ptr = (*uint64)(unsafe.Pointer(&fieldValues.value))
 	}
 	if fieldValues.valueType == C.NVML_VALUE_TYPE_UNSIGNED_LONG_LONG {
-		ptr := (*uint64)(unsafe.Pointer(&fieldValues.value))
-		return float64(*ptr), errorString(r)
+		ptr = (*uint64)(unsafe.Pointer(&fieldValues.value))
 	}
 	if fieldValues.valueType == C.NVML_VALUE_TYPE_SIGNED_LONG_LONG {
-		ptr := (*int)(unsafe.Pointer(&fieldValues.value))
-		return float64(*ptr), errorString(r)
+		ptr = (*int)(unsafe.Pointer(&fieldValues.value))
 	}
-	return float64(0), errorString(r)
+	return float64(*ptr), errorString(r)
 }
 
 // PowerUsage returns the power usage for this GPU and its associated circuitry

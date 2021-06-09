@@ -25,14 +25,15 @@ var (
 
 type Collector struct {
 	sync.Mutex
-	numDevices       prometheus.Gauge
-	usedMemory       *prometheus.GaugeVec
-	totalMemory      *prometheus.GaugeVec
-	dutyCycle        *prometheus.GaugeVec
-	powerUsage       *prometheus.GaugeVec
-	temperature      *prometheus.GaugeVec
-	fanSpeed         *prometheus.GaugeVec
-	nvlinkThroughput *prometheus.GaugeVec
+	numDevices         prometheus.Gauge
+	usedMemory         *prometheus.GaugeVec
+	totalMemory        *prometheus.GaugeVec
+	dutyCycle          *prometheus.GaugeVec
+	powerUsage         *prometheus.GaugeVec
+	temperature        *prometheus.GaugeVec
+	fanSpeed           *prometheus.GaugeVec
+	nvlinkThroughputTx *prometheus.GaugeVec
+	nvlinkThroughputRx *prometheus.GaugeVec
 }
 
 func NewCollector() *Collector {
@@ -92,11 +93,19 @@ func NewCollector() *Collector {
 			},
 			labels,
 		),
-		nvlinkThroughput: prometheus.NewGaugeVec(
+		nvlinkThroughputTx: prometheus.NewGaugeVec(
 			prometheus.GaugeOpts{
 				Namespace: namespace,
-				Name:      "throughput_kib",
-				Help:      "NVlink throughput",
+				Name:      "throughput_Tx_kib",
+				Help:      "NVlink throughput Tx",
+			},
+			labels,
+		),
+		nvlinkThroughputRx: prometheus.NewGaugeVec(
+			prometheus.GaugeOpts{
+				Namespace: namespace,
+				Name:      "throughput_Rx_kib",
+				Help:      "NVlink throughput Rx",
 			},
 			labels,
 		),
@@ -111,7 +120,8 @@ func (c *Collector) Describe(ch chan<- *prometheus.Desc) {
 	c.powerUsage.Describe(ch)
 	c.temperature.Describe(ch)
 	c.fanSpeed.Describe(ch)
-	c.nvlinkThroughput.Describe(ch)
+	c.nvlinkThroughputTx.Describe(ch)
+	c.nvlinkThroughputRx.Describe(ch)
 }
 
 func (c *Collector) Collect(ch chan<- prometheus.Metric) {
@@ -125,7 +135,8 @@ func (c *Collector) Collect(ch chan<- prometheus.Metric) {
 	c.powerUsage.Reset()
 	c.temperature.Reset()
 	c.fanSpeed.Reset()
-	c.nvlinkThroughput.Reset()
+	c.nvlinkThroughputTx.Reset()
+	c.nvlinkThroughputRx.Reset()
 
 	numDevices, err := gonvml.DeviceCount()
 	if err != nil {
@@ -200,11 +211,18 @@ func (c *Collector) Collect(ch chan<- prometheus.Metric) {
 			}
 		}
 
-		throughput, err := dev.NvmlDeviceGetThroughput()
+		throughputTx, err := dev.NvmlDeviceGetThroughput("Tx")
 		if err != nil {
-			log.Printf("nvmlDeviceGetThroughput() error: %v", err)
+			log.Printf("nvmlDeviceGetThroughput() Tx error: %v", err)
 		} else {
-			c.nvlinkThroughput.WithLabelValues(minor, uuid, name).Set(float64(throughput))
+			c.nvlinkThroughputTx.WithLabelValues(minor, uuid, name).Set(float64(throughputTx))
+		}
+
+		throughputRx, err := dev.NvmlDeviceGetThroughput("Rx")
+		if err != nil {
+			log.Printf("nvmlDeviceGetThroughput() Rx error: %v", err)
+		} else {
+			c.nvlinkThroughputRx.WithLabelValues(minor, uuid, name).Set(float64(throughputRx))
 		}
 	}
 	c.usedMemory.Collect(ch)
@@ -213,7 +231,8 @@ func (c *Collector) Collect(ch chan<- prometheus.Metric) {
 	c.powerUsage.Collect(ch)
 	c.temperature.Collect(ch)
 	c.fanSpeed.Collect(ch)
-	c.nvlinkThroughput.Collect(ch)
+	c.nvlinkThroughputTx.Collect(ch)
+	c.nvlinkThroughputRx.Collect(ch)
 }
 
 func main() {
