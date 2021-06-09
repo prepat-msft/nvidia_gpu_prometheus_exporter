@@ -23,7 +23,7 @@
   branch = "master"
   name = "github.com/prepat-msft/gonvml"
   packages = ["."]
-  revision = "a918fae35e21934216c331f70909a280dda57fce"
+  revision = "e280428580e0f9336485e7aaf6d1b6e382517beb"
 
 [[projects]]
   name = "github.com/prometheus/client_golang"
