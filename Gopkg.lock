@@ -21,9 +21,9 @@
 
 [[projects]]
   branch = "master"
-  name = "github.com/mindprince/gonvml"
+  name = "github.com/prepat-msft/gonvml"
   packages = ["."]
-  revision = "b364b296c7320f5d3dc084aa536a3dba33b68f90"
+  revision = "e280428580e0f9336485e7aaf6d1b6e382517beb"
 
 [[projects]]
   name = "github.com/prometheus/client_golang"

@@ -21,6 +21,7 @@ package gonvml
 #include <stddef.h>
 #include <dlfcn.h>
 #include <stdlib.h>
+#include <limits.h>
 
 #include "nvml.h"
 
@@ -101,6 +102,14 @@ nvmlReturn_t nvmlDeviceGetUtilizationRates(nvmlDevice_t device, nvmlUtilization_
     return NVML_ERROR_FUNCTION_NOT_FOUND;
   }
   return nvmlDeviceGetUtilizationRatesFunc(device, utilization);
+}
+
+nvmlReturn_t (*nvmlDeviceGetFieldValuesFunc)(nvmlDevice_t device, int valuesCount, nvmlFieldValue_t* values);
+nvmlReturn_t nvmlDeviceGetFieldValues(nvmlDevice_t device, int valuesCount, nvmlFieldValue_t* values) {
+  if (nvmlDeviceGetFieldValuesFunc == NULL) {
+    return NVML_ERROR_FUNCTION_NOT_FOUND;
+  }
+  return nvmlDeviceGetFieldValuesFunc(device, valuesCount, values);
 }
 
 nvmlReturn_t (*nvmlDeviceGetPowerUsageFunc)(nvmlDevice_t device, unsigned int *power);
@@ -195,6 +204,10 @@ nvmlReturn_t nvmlInit_dl(void) {
   }
   nvmlDeviceGetUtilizationRatesFunc = dlsym(nvmlHandle, "nvmlDeviceGetUtilizationRates");
   if (nvmlDeviceGetUtilizationRatesFunc == NULL) {
+    return NVML_ERROR_FUNCTION_NOT_FOUND;
+  }
+  nvmlDeviceGetFieldValuesFunc = dlsym(nvmlHandle, "nvmlDeviceGetFieldValues");
+  if (nvmlDeviceGetFieldValuesFunc == NULL) {
     return NVML_ERROR_FUNCTION_NOT_FOUND;
   }
   nvmlDeviceGetPowerUsageFunc = dlsym(nvmlHandle, "nvmlDeviceGetPowerUsage");
@@ -313,6 +326,7 @@ import (
 	"errors"
 	"fmt"
 	"time"
+	"unsafe"
 )
 
 const (
@@ -440,6 +454,44 @@ func (d Device) UtilizationRates() (uint, uint, error) {
 	var utilization C.nvmlUtilization_t
 	r := C.nvmlDeviceGetUtilizationRates(d.dev, &utilization)
 	return uint(utilization.gpu), uint(utilization.memory), errorString(r)
+}
+
+func (d Device) NvmlDeviceGetThroughput(path string) (float64, error) {
+	if C.nvmlHandle == nil {
+		return 0, errLibraryNotLoaded
+	}
+	var fieldValues C.nvmlFieldValue_t
+	if path == "Tx" {
+		fieldValues.fieldId = C.NVML_FI_DEV_NVLINK_THROUGHPUT_DATA_TX
+	} else {
+		fieldValues.fieldId = C.NVML_FI_DEV_NVLINK_THROUGHPUT_DATA_RX
+	}
+	fieldValues.scopeId = C.UINT_MAX
+	r := C.nvmlDeviceGetFieldValues(d.dev, 1, &fieldValues)
+	if r != C.NVML_SUCCESS {
+		return 0, errorString(r)
+	}
+	if fieldValues.valueType == C.NVML_VALUE_TYPE_DOUBLE {
+		ptr := (*float64)(unsafe.Pointer(&fieldValues.value))
+		return float64(*ptr), errorString(r)
+	}
+	if fieldValues.valueType == C.NVML_VALUE_TYPE_UNSIGNED_INT {
+		ptr := (*uint)(unsafe.Pointer(&fieldValues.value))
+		return float64(*ptr), errorString(r)
+	}
+	if fieldValues.valueType == C.NVML_VALUE_TYPE_UNSIGNED_LONG {
+		ptr := (*uint64)(unsafe.Pointer(&fieldValues.value))
+		return float64(*ptr), errorString(r)
+	}
+	if fieldValues.valueType == C.NVML_VALUE_TYPE_UNSIGNED_LONG_LONG {
+		ptr := (*uint64)(unsafe.Pointer(&fieldValues.value))
+		return float64(*ptr), errorString(r)
+	}
+	if fieldValues.valueType == C.NVML_VALUE_TYPE_SIGNED_LONG_LONG {
+		ptr := (*int)(unsafe.Pointer(&fieldValues.value))
+		return float64(*ptr), errorString(r)
+	}
+	return float64(0), errorString(r)
 }
 
 // PowerUsage returns the power usage for this GPU and its associated circuitry
